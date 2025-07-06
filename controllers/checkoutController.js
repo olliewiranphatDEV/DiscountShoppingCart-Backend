@@ -6,7 +6,7 @@ const createError = require("../utils/createError");
 exports.postCheckoutOrderPayment = TryCatch(async (req, res) => {
     console.log('req.user.userID >>', req.user.userID);
     console.log('req.body', req.body);
-    const { orderFinalPrice, productsOrderData, discountsOrderData } = req.body
+    const { userCarts, orderFinalPrice, productsOrderData, discountsOrderData } = req.body
     if (!orderFinalPrice || productsOrderData.length === 0 || discountsOrderData.length === 0) {
         return createError(400, "Bad request, Incomplete data")
     }
@@ -31,6 +31,29 @@ exports.postCheckoutOrderPayment = TryCatch(async (req, res) => {
         }
     })
     console.log('results >>', results);
+
+    // DELETE ProductOnCart EVERY cartID OF userID
+    await prisma.productOnCart.deleteMany({
+        where: {
+            cartID: {
+                in: userCarts.map(cart => cart.cartID)
+            }
+        }
+    })
+
+    // DELETE cart OF user นี้
+    await prisma.cart.updateMany({
+        where: {
+            cartID: {
+                in: userCarts.map(cart => cart.cartID)
+            },
+            customerID: req.user.userID
+        },
+        data: {
+            status: "checkout"
+        }
+    })
+
 
     res.status(200).json({
         message: `Success create ${results.orderID} data`,

@@ -10,7 +10,4 @@ checkoutRouter.post('/order-payment', authorization, postCheckoutOrderPayment); 
 // STEP 2
 checkoutRouter.get('/order-summary/:orderID', authorization, getOrderPaymentSummary); // CALCULATE DISCOUNT - KEEP INTO ProductOnOrder
 
-// CONFIRM ORDER PAGE
-// checkoutRouter.get('/order-summary/payment', postOrderConfirm);
-
 module.exports = checkoutRouter;

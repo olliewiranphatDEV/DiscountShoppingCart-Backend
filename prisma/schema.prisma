@@ -48,7 +48,8 @@ model Product {
 
 enum CartStatus {
   onProcess
-  payment // USER HAD PREESED PAYMENT BTN
+  checkout
+  payment
 }
 
 // SELECT PRODUCT TO CART - NOT DISCOUNT
