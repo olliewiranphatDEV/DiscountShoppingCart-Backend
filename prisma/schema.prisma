@@ -1,0 +1,166 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  userID    Int     @id @default(autoincrement())
+  firstName String  @db.VarChar(255)
+  lastName  String  @db.VarChar(255)
+  phone     String? @unique @db.VarChar(255)
+  email     String? @unique @db.VarChar(255)
+  passWord  String  @db.VarChar(255)
+  points    Int     @default(0) // 1 POINT = 1 THB (MAX 20% OF TOTAL PRICE)
+
+  createdAt DateTime @default(now()) @db.Timestamp(0)
+  updatedAt DateTime @updatedAt @db.Timestamp(0)
+
+  Order Order[]
+  Cart  Cart[]
+
+  @@map("user")
+}
+
+model Product {
+  productID   Int     @id @default(autoincrement())
+  productName String
+  productCate String
+  price       Decimal @db.Decimal(10, 2)
+  imageUrl    String?
+
+  createdAt      DateTime         @default(now()) @db.Timestamp(0)
+  updatedAt      DateTime         @updatedAt @db.Timestamp(0)
+  ProductOnOrder ProductOnOrder[]
+  ProductOnCart  ProductOnCart[]
+
+  @@map("product")
+}
+
+enum CartStatus {
+  onProcess
+  payment // USER HAD PREESED PAYMENT BTN
+}
+
+// SELECT PRODUCT TO CART - NOT DISCOUNT
+model Cart {
+  cartID     Int  @id @default(autoincrement())
+  customerID Int
+  customer   User @relation(fields: [customerID], references: [userID], onDelete: Cascade)
+
+  totalPriceItem Decimal    @db.Decimal(10, 2) // NOT DISCOUNT
+  status         CartStatus @default(onProcess)
+  createdAt      DateTime   @default(now()) @db.Timestamp(0)
+  updatedAt      DateTime   @updatedAt @db.Timestamp(0)
+
+  ProductOnCart ProductOnCart[]
+
+  @@map("cart")
+}
+
+model ProductOnCart {
+  productID Int
+  product   Product @relation(fields: [productID], references: [productID], onDelete: Cascade)
+  cartID    Int
+  cart      Cart    @relation(fields: [cartID], references: [cartID], onDelete: Cascade)
+
+  quantity Int @default(0) // QTY OF THIS PRODUCT_ID ON THIS CART_ID
+
+  createdAt DateTime @default(now()) @db.Timestamp(0)
+  updatedAt DateTime @updatedAt @db.Timestamp(0)
+
+  @@id([productID, cartID])
+  @@map("productoncart")
+}
+
+// AFTER SELECTED THE DISCOUNT - PUSH ON PROCEED - CHANGE TO SUMMARY ORDER PAGE
+// ProductID - OrderID
+model ProductOnOrder {
+  orderID        Int
+  order          Order   @relation(fields: [orderID], references: [orderID], onDelete: Cascade)
+  productID      Int
+  product        Product @relation(fields: [productID], references: [productID], onDelete: Cascade)
+  quantity       Int     @default(0)
+  totalPriceItem Decimal @db.Decimal(10, 1) // PAY_PRICE 
+
+  createdAt DateTime @default(now()) @db.Timestamp(0)
+
+  @@id([productID, orderID])
+  @@map("productonorder")
+}
+
+model DiscountOnOrder {
+  orderID            Int
+  order              Order    @relation(fields: [orderID], references: [orderID], onDelete: Cascade)
+  discounID          Int
+  discount           Discount @relation(fields: [discounID], references: [discountID], onDelete: Cascade)
+  priceAfterDiscount Decimal  @db.Decimal(10, 2) // PAY_PRICE 
+
+  createdAt DateTime @default(now()) @db.Timestamp(0)
+
+  @@id([discounID, orderID])
+  @@map("discountonorder")
+}
+
+model Order {
+  orderID         Int      @id @default(autoincrement())
+  orderFinalPrice Decimal  @db.Decimal(10, 2) // PAY_PRICE 
+  orderDate       DateTime @default(now()) @db.Timestamp(0)
+
+  customerID Int
+  customer   User @relation(fields: [customerID], references: [userID], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @db.Timestamp(0)
+
+  ProductOnOrder  ProductOnOrder[]
+  DiscountOnOrder DiscountOnOrder[]
+
+  @@map("order")
+}
+
+// USE ENUM : PREVENT MISTAKE
+enum DiscountCampaign {
+  fixedAmount
+  percentage
+  percentageByProduct
+  points
+  specialSeasonal
+}
+
+enum DiscountCategory {
+  coupon
+  onTop
+  seasonal
+}
+
+// RENDER DISCOUNT SELECTOR - FOR USER
+model Discount {
+  discountID  Int              @id @default(autoincrement())
+  campaign    DiscountCampaign // 'fixed', 'percentage', 'points', 'special'
+  category    DiscountCategory // coupon, onTop, seasonal
+  label       String           @db.VarChar(255)
+  fixedAmount Int? // 50
+  percentage  Int? // 10, 15 (Clothing, Accessories, Electronics)
+  points      Int?
+  everyX      Int? // 300THB for seasonal
+  discountY   Int? // 40THB for seasonal
+  productCate String           @default("ALL")
+
+  createdAt       DateTime          @default(now()) @db.Timestamp(0)
+  updatedAt       DateTime          @updatedAt @db.Timestamp(0)
+  DiscountOnOrder DiscountOnOrder[]
+
+  @@map("discount")
+}
+
+// npx prisma migrate dev --name init
+// OR npx prisma db push
