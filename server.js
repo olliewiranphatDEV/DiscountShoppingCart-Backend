@@ -24,6 +24,7 @@ app.get("/", (req, res) => {
     res.send("API is working!");
 });
 
+
 app.get('/favicon.ico', (req, res) => res.status(204));
 
 

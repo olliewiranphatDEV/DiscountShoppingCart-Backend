@@ -29,6 +29,23 @@ exports.getCartsByUserID = TryCatch(async (req, res) => {
     res.status(200).json({ message: `Success Get cart data for this userID ${req.user.userID}`, results })
 })
 
+exports.deleteCartIDByUserID = TryCatch(async (req, res) => {
+
+    if (!req.params.cartID) {
+        return createError(400, "Please send cartID")
+    }
+    console.log('req.params.cartID >>', req.params.cartID);
+
+    await prisma.cart.delete({
+        where: {
+            cartID: parseInt(req.params.cartID),
+            customerID: req.user.userID
+        }
+    })
+
+    res.status(200).json({ message: `Success delete cartID ${req.params.cartID} of userID ${req.user.userID} ` })
+})
+
 
 
 

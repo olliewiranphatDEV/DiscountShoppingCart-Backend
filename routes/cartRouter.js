@@ -1,11 +1,11 @@
 const express = require('express');
-const { getCartsByUserID } = require('../controllers/cartController');
+const { getCartsByUserID, deleteCartIDByUserID } = require('../controllers/cartController');
 const authorization = require('../middlewares/authorization');
 const cartRouter = express.Router();
 
 
 cartRouter.get('/my-carts', authorization, getCartsByUserID);
-// cartRouter.delete('/cart/delete-checked', authorization, deleteCheckedItem)
+cartRouter.delete('/delete/:cartID', authorization, deleteCartIDByUserID);
 // cartRouter.patch('/cart/update-quantity', authorization, updateQuantity) 
 
 
