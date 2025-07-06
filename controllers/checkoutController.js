@@ -50,7 +50,7 @@ exports.postCheckoutOrderPayment = TryCatch(async (req, res) => {
             customerID: req.user.userID
         },
         data: {
-            status: "checkout"
+            status: "checkoutDone"
         }
     })
 

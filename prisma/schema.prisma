@@ -48,7 +48,7 @@ model Product {
 
 enum CartStatus {
   onProcess
-  checkout
+  checkoutDone
   payment
 }
 
