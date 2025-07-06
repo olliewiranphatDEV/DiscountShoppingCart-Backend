@@ -24,6 +24,10 @@ app.get("/", (req, res) => {
     res.send("API is working!");
 });
 
+app.get('/favicon.ico', (req, res) => res.status(204));
+
+
+
 // Router : 
 app.use('/auth', authRouter)
 app.use('/user', userRouter)
